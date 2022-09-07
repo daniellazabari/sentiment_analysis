@@ -9,10 +9,15 @@ from nltk.tag import pos_tag
 from nltk.stem.wordnet import WordNetLemmatizer
 from nltk.corpus import twitter_samples
 from nltk.corpus import stopwords
+from nltk import FreqDist
 import re, string
 
-# Removing noise from the data & normalizing the data
 def remove_noise(tweet_tokens, stop_words=()):
+    '''
+    This function uses regexp to remove from the data: hyperlinkes, twitter handles in replies and 
+    punctuation and special characters.
+    Then, the function uses lemmatization to normalize the data. 
+    '''
     cleaned_tokens = []
     # Get the position tag of each token of a tweet
     for token, tag in pos_tag(tweet_tokens):
@@ -21,7 +26,7 @@ def remove_noise(tweet_tokens, stop_words=()):
                        '(?:%[0-9a-fA-F][0-9a-fA-F]))+','', token) # Remove hyperlinkes 
         token = re.sub("(@[A-Za-z0-9_]+)", "", token) # Remove twittwer handles in replies
         
-        # Normalize the data using lemmatization
+        # Normalize the data
         # If the tag starts with NN, the token is assigned as a noun
         if tag.startswith('NN'):
             pos = 'n'
@@ -39,15 +44,24 @@ def remove_noise(tweet_tokens, stop_words=()):
     
     return cleaned_tokens
 
+def get_all_words(cleaned_tokens):
+    '''
+    A Generator function that takes a list of tweets as an argument to provide a list of words in all of
+    the tweet tokens joined. 
+    '''
+    for tokens in cleaned_tokens:
+        for token in tokens:
+            yield token
+
 if __name__ == "__main__":
     # Tokenize the data
-    positive_tweets = twitter_samples.strings('positive_tweets.json') # 5000 tweets with positive sentiments
-    negative_tweets = twitter_samples.strings('negative_tweets.json') # 5000 tweets with negative sentiments
-    text = twitter_samples.strings('tweets.20150430-223406.json') # 20000 tweets with no sentiments
+    positive_tweets = twitter_samples.strings('positive_tweets.json')
+    negative_tweets = twitter_samples.strings('negative_tweets.json')
+    text = twitter_samples.strings('tweets.20150430-223406.json')
     tweet_tokens = twitter_samples.tokenized('positive_tweets.json')
 
     stop_words = stopwords.words('english')
-
+    
     # Cleaned the sample tweets
     positive_tweet_tokens = twitter_samples.tokenized('positive_tweets.json')
     negative_tweet_tokens = twitter_samples.tokenized('negative_tweets.json')
@@ -61,4 +75,7 @@ if __name__ == "__main__":
     for tokens in negative_tweet_tokens:
         negative_cleaned_tokens.append(remove_noise(tokens, stop_words))
 
+    all_pos_words = get_all_words(positive_cleaned_tokens)
+    freq_dist_pos = FreqDist(all_pos_words)
+    print(freq_dist_pos.most_common(10))
     
