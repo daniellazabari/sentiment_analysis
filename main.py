@@ -5,11 +5,12 @@ import nltk
 # nltk.download('averaged_perceptron_tagger')
 # nltk.download('omw-1.4')
 # nltk.download('stopwords')
-from nltk.tag import pos_tag
 from nltk.stem.wordnet import WordNetLemmatizer
-from nltk.corpus import twitter_samples
-from nltk.corpus import stopwords
-from nltk import FreqDist
+from nltk.corpus import twitter_samples, stopwords
+from nltk.tag import pos_tag
+from nltk.tokenize import word_tokenize
+from nltk import FreqDist, classify, NaiveBayesClassifier
+
 import re, string
 import random
 
@@ -99,5 +100,14 @@ if __name__ == "__main__":
 
     train_data = dataset[:7000]
     test_data = dataset[7000:]
-    
+
+    # Build the model
+    classifier = NaiveBayesClassifier.train(train_data)
+    print("Accuracy is:", classify.accuracy(classifier, test_data))
+    print(classifier.show_most_informative_features(10))
+
+    # Test the model
+    custom_tweet = 'Congrats #SportStar on your 7th best goal from last season winning goal of the year :) #Baller #Topbin #oneofmanyworldies'
+    custom_tokens = remove_noise(word_tokenize(custom_tweet))
+    print(classifier.classify(dict([token, True] for token in custom_tokens)))
 
